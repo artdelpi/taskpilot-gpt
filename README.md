@@ -1,24 +1,17 @@
-# README
+# GPT Task Assistant
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A web application built with Ruby on Rails for smart task management, featuring integration with the ChatGPT API.
 
-Things you may want to cover:
+## Overview
 
-* Ruby version
+- Organize personal or team projects and tasks.
+- Get help from a virtual assistant (ChatGPT) for suggestions, prioritization, task breakdowns and productivity tips.
+- Support for multiple users, projects and a history of interactions.
 
-* System dependencies
+## Technologies
 
-* Configuration
+- Ruby on Rails
+- PostgreSQL
+- ChatGPT (OpenAI) Integration
 
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+---
