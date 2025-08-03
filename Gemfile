@@ -64,4 +64,5 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'faker'
   gem 'dotenv-rails'
+  gem 'cucumber-rails', require: false
 end
