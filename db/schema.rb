@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_04_013950) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_04_204536) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -39,6 +39,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_04_013950) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_projects_on_user_id"
   end
 
   create_table "tags", force: :cascade do |t|
@@ -91,24 +93,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_04_013950) do
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.bigint "project_id", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["project_id"], name: "index_users_on_project_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
   add_foreign_key "attachments", "tasks"
   add_foreign_key "comments", "tasks"
   add_foreign_key "comments", "users"
+  add_foreign_key "projects", "users"
   add_foreign_key "task_assignments", "tasks"
   add_foreign_key "task_assignments", "users"
   add_foreign_key "task_dependencies", "tasks"
   add_foreign_key "task_tags", "tags"
   add_foreign_key "task_tags", "tasks"
   add_foreign_key "tasks", "projects"
-  add_foreign_key "users", "projects"
 end
