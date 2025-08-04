@@ -6,6 +6,7 @@ TaskTag.destroy_all
 TaskAssignment.destroy_all
 Task.destroy_all
 Tag.destroy_all
+ProjectAssignment.destroy_all
 Project.destroy_all
 User.destroy_all
 
@@ -17,8 +18,11 @@ puts "Creating project..."
 project = Project.create!(
     name: "Product X Launch",
     description: "Planning and execution of the launch campaign.",
-    user_id: user1.id
     )
+
+puts "Assigning users to projects..."
+ProjectAssignment.create!(user_id: user1.id, project_id: project.id)
+ProjectAssignment.create!(user_id: user2.id, project_id: project.id)
 
 puts "Creating tags..."
 tag_bug = Tag.create!(name: "bug")
