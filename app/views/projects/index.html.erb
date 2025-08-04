@@ -1,0 +1,38 @@
+<style>
+  body {
+    background: url('https://source.unsplash.com/featured/?workspace,project') no-repeat center center fixed;
+    background-size: cover;
+  }
+</style>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+  <div class="card shadow p-5" style="width: 100%; max-width: 800px; backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.85); border-radius: 16px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Your Projects</h2>
+        <p class="text-muted mb-0">Welcome back, <%= current_user.name || current_user.email %>!</p>
+      </div>
+      <%= link_to "New Project", new_project_path, class: "btn btn-success btn-sm" %>
+    </div>
+
+    <% if current_user.projects.any? %>
+      <div class="list-group">
+        <% current_user.projects.each do |project| %>
+          <%= link_to project_path(project), class: "list-group-item list-group-item-action mb-2 rounded shadow-sm" do %>
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1 fw-semibold"><%= project.name %></h5>
+              <small class="text-muted"><%= time_ago_in_words(project.created_at) %> ago</small>
+            </div>
+            <p class="mb-1 text-muted"><%= truncate(project.description, length: 100) %></p>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="alert alert-info text-center">
+        You haven't joined or created any projects yet.
+      </div>
+    <% end %>
+
+  </div>
+</div>
