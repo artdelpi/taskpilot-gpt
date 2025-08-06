@@ -1,4 +1,6 @@
-<p align="center" style="font-size: 4rem;">⚙<p>
+<p align="center">
+  <img src="https://twemoji.maxcdn.com/v/latest/svg/2699.svg" width="64" alt="Gear Emoji">
+</p>
 <h1 align="center">GPT Task Assistant</h1>
 
 <p align="center">
@@ -58,7 +60,7 @@
 ## Database Schema
 
 <p align="center">
-  <img src="docs/relational_db_model.png" alt="Relational Database Model" width="900">
+  <img src="docs/relational_model.png" alt="Relational Database Model" width="900">
 </p>
 
 <p align="center">
