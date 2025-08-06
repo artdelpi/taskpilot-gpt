@@ -13,10 +13,13 @@ class ProjectsController < ApplicationController
 
   def create
     @project = Project.new(project_params)
+
     if @project.save
-      redirect_to @project
+      ProjectAssignment.create(user: current_user, project: @project)
+
+      redirect_to root_path, notice: "Project created successfully."
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
