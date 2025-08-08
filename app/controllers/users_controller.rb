@@ -1,9 +1,18 @@
 class UsersController < ApplicationController
-  def index
-    @users = User.all
+  before_action :authenticate_user!
+
+  def update
+    if current_user.update(user_params)
+      redirect_back fallback_location: authenticated_root_path, notice: "Profile updated."
+    else
+      redirect_back fallback_location: authenticated_root_path,
+                    alert: current_user.errors.full_messages.to_sentence
+    end
   end
 
-  def show
-    @user = User.find(params[:id])
+  private
+
+  def user_params
+    params.require(:user).permit(:name)
   end
 end
