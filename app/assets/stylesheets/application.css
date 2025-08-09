@@ -201,7 +201,6 @@ body.background-tech {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 16px;
-  padding: 40px;
   width: 100%;
   max-height: 90vh;
   max-width: 600px;
@@ -211,8 +210,8 @@ body.background-tech {
   transition: opacity 0.4s ease, transform 0.4s ease;
   display: flex;
   flex-direction: column;
-  overflow: hidden;         
-  padding: 8px;
+  overflow: hidden;     
+  padding: 8px;    
 }
 
 .modal-body{
@@ -235,4 +234,29 @@ body.background-tech {
 .modal-overlay.show .modal-content {
   opacity: 1;
   transform: translateY(0);
+}
+
+.stack-vertical .row { 
+  display: block; 
+  margin: 0; 
+}
+
+.stack-vertical [class^="col-"], 
+.stack-vertical [class*=" col-"] {
+  flex: 0 0 100%; 
+  max-width: 100%;
+}
+
+.stack-vertical > * {
+  width: 100%;
+}
+
+.stack-vertical .card {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.stack-vertical .container {
+  max-width: 100%; 
+  padding: 0;
 }
