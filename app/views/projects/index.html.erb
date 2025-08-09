@@ -3,7 +3,6 @@
 <div class="sidebar">
   <div>
     <h4><i class="bi bi-rocket-takeoff-fill me-2"></i>Taskpilot</h4>
-
     <button id="openProfileModal"><i class="bi bi-person-circle"></i> Profile</button>
     <button id="openTasksModal"><i class="bi bi-check2-square"></i> Tasks</button>
     <button id="openTagsModal"><i class="bi bi-tag"></i> Tags</button>
@@ -11,17 +10,14 @@
   </div>
 
   <div>
-    <%= link_to destroy_user_session_path, method: :delete, data: { confirm: "Are you sure you want to log out?" }, class: "text-white d-flex align-items-center" do %>
-     <i class="bi bi-box-arrow-right me-2"></i> Logout
-    <% end %>
-    <small class="d-block mt-2">Logged in as<br><strong><%= current_user.name || current_user.email %></strong></small>
-  </div>
-</div>
-
-<div>
-    <%= link_to destroy_user_session_path, method: :delete, data: { confirm: "Are you sure you want to log out?" }, class: "text-white d-flex align-items-center" do %>
+    <%= button_to destroy_user_session_path,
+          method: :delete,
+          form: { data: { turbo: true }, class: "d-inline" },
+          class: "text-white d-flex align-items-center",
+          data: { turbo_confirm: "Are you sure you want to log out?" } do %>
       <i class="bi bi-box-arrow-right me-2"></i> Logout
     <% end %>
+    <small class="d-block mt-2">Logged in as<br><strong><%= current_user.name || current_user.email %></strong></small>
   </div>
 </div>
 
@@ -93,6 +89,17 @@
   <% end %>
 </div>
 
+<div
+  data-controller="modals"
+  data-modals-map-value='{
+    "openProfileModal": "profileModal",
+    "openNewProjectModal": "newProjectModal",
+    "openTasksModal": "tasksModal",
+    "openTagsModal": "tagsModal",
+    "openSettingsModal": "settingsModal"
+  }'>
+</div>
+
 <div id="settingsModal" class="modal-overlay" style="display: none;">
   <div class="modal-content">
     
@@ -154,7 +161,7 @@
 
          <!-- Action buttons -->
         <div class="d-flex gap-2">
-          <button type="button" id="closeSettingsModal" class="btn btn-outline-secondary">Cancel</button>
+          <button type="button" id="closeSettingsModal" class="btn btn-outline-secondary" data-close>Cancel</button>
           <%= f.submit "Save Changes", class: "btn btn-primary" %>
         </div>
       </div>
@@ -180,31 +187,44 @@
 
         <div class="mb-4">
           <%= f.label :description, class: "form-label" %>
-          <%= f.text_area :description, class: "form-control", rows: 4 %>
+          <%= f.text_area :description, class: "form-control", rows: 4, id: "project_description" %>
         </div>
 
-        <div id="tasksContainer">
-          <%= f.fields_for :tasks do |tf| %>
-            <%= render "task_fields", f: tf %>
-          <% end %>
-        </div>
+        <div data-controller="tasks-form" data-action="click->tasks-form#remove">
+          <div id="tasksContainer" data-tasks-form-target="container">
+            <%= f.fields_for :tasks do |tf| %>
+              <%= render "task_fields", f: tf %>
+            <% end %>
+          </div>
 
-        <template id="taskTemplate">
-          <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
-            <%= render "task_fields", f: tf %>
-          <% end %>
-        </template>
+          <template id="taskTemplate" data-tasks-form-target="template">
+            <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
+              <%= render "task_fields", f: tf %>
+            <% end %>
+          </template>
+        </div>
       </div>
 
       <div class="modal-footer d-flex justify-content-between">
-        <button type="button" id="addTask" class="btn btn-outline-primary btn-sm" style="width: 120px">
-          <i class="bi bi-plus"></i> Add task
-          <button type="button" id="addTaskAI" class="btn btn-outline-success btn-sm custom-btn-green" style="width: 120px">
-          <i class="bi bi-plus"></i> Add Task (AI)
-        </button>
+        <div class="d-flex gap-2">
+          <button type="button"
+                  id="addTask"
+                  class="btn btn-outline-primary btn-sm"
+                  style="width: 120px"
+                  data-action="click->tasks-form#add">
+            <i class="bi bi-plus"></i> Add task
+          </button>
+
+          <button type="button"
+                  id="addTaskAI"
+                  class="btn btn-outline-success btn-sm custom-btn-green"
+                  style="width: 120px">
+            <i class="bi bi-plus"></i> Add Task (AI)
+          </button>
+        </div>
 
         <div class="d-flex gap-2">
-          <button type="button" id="closeNewProjectModal" class="btn btn-outline-secondary">Cancel</button>
+          <button type="button" id="closeNewProjectModal" class="btn btn-outline-secondary" data-close>Cancel</button>
           <%= f.submit "Create Project", class: "btn btn-primary" %>
         </div>
       </div>
@@ -234,7 +254,7 @@
     </ul>
 
     <div class="d-flex justify-content-end">
-      <button type="button" id="closeProfileModal" class="btn btn-secondary">Close</button>
+      <button type="button" id="closeProfileModal" class="btn btn-secondary" data-close>Close</button>
     </div>
   </div>
 </div>
@@ -278,7 +298,7 @@
 
     <!-- Sticky footer -->
     <div class="modal-footer d-flex justify-content-end">
-      <button type="button" id="closeTasksModal" class="btn btn-secondary">Close</button>
+      <button type="button" id="closeTasksModal" class="btn btn-secondary" data-close>Close</button>
     </div>
 
   </div>
@@ -293,12 +313,15 @@
     <p class="text-muted">Organize and filter your tasks with tags.</p>
 
     <div class="d-flex justify-content-end">
-      <button type="button" id="closeTagsModal" class="btn btn-secondary">Close</button>
+      <button type="button" id="closeTagsModal" class="btn btn-secondary" data-close>Close</button>
     </div>
   </div>
 </div>
 
-<div id="projectDetailsModal" class="modal-overlay" style="display: none;">
+<div id="projectDetailsModal"
+     class="modal-overlay"
+     style="display: none;"
+     data-controller="project-details">
   <div class="modal-content modal-lg stack-vertical">
 
     <!-- Modal header -->
@@ -392,149 +415,10 @@
 
     <!-- Sticky footer -->
     <div class="modal-footer d-flex justify-content-end">
-      <button type="button" id="closeProjectDetailsModal" class="btn btn-outline-secondary">
+      <button type="button" id="closeProjectDetailsModal" class="btn btn-outline-secondary" data-close>
         Close
       </button>
     </div>
 
   </div>
 </div>
-
-<script>
-  document.addEventListener("turbo:load", function () {
-    const modals = [
-      { open: "openProfileModal",  modal: "profileModal",        close: "closeProfileModal" },
-      { open: "openNewProjectModal", modal: "newProjectModal",   close: "closeNewProjectModal" },
-      { open: "openTasksModal",    modal: "tasksModal",          close: "closeTasksModal" },
-      { open: "openTagsModal",     modal: "tagsModal",           close: "closeTagsModal" },
-      { open: "openSettingsModal", modal: "settingsModal",       close: "closeSettingsModal" }
-    ];
-
-    modals.forEach(({ open, modal, close }) => {
-      const openBtn  = document.getElementById(open);
-      const closeBtn = document.getElementById(close);
-      const modalDiv = document.getElementById(modal);
-
-      if (openBtn && modalDiv) {
-        openBtn.addEventListener("click", () => {
-          modalDiv.style.display = "flex";
-          modalDiv.classList.add("show");
-        });
-      }
-      if (closeBtn && modalDiv) {
-        closeBtn.addEventListener("click", () => {
-          modalDiv.classList.remove("show");
-          setTimeout(() => (modalDiv.style.display = "none"), 300);
-        });
-      }
-      modalDiv?.addEventListener("click", (ev) => {
-        if (ev.target === modalDiv) closeBtn?.click();
-      });
-    });
-
-    const toggle = document.getElementById("togglePasswordFields");
-    const pwdBox = document.getElementById("passwordFields");
-    if (toggle && pwdBox) {
-      toggle.addEventListener("change", () => {
-        pwdBox.style.display = toggle.checked ? "block" : "none";
-      });
-    }
-  });
-
-  document.addEventListener("turbo:load", function () {
-    const projectModal = document.getElementById("projectDetailsModal");
-    const closeBtn = document.getElementById("closeProjectDetailsModal");
-
-    document.addEventListener("turbo:frame-load", function (e) {
-      if (e.target && e.target.id === "project_details") {
-        projectModal.style.display = "flex";
-        projectModal.classList.add("show");
-      }
-    });
-
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        projectModal.classList.remove("show");
-        setTimeout(() => (projectModal.style.display = "none"), 300);
-      });
-    }
-    projectModal?.addEventListener("click", (ev) => {
-      if (ev.target === projectModal) closeBtn?.click();
-    });
-  });
-
-  document.addEventListener("turbo:load", function () {
-    const taskModal = document.getElementById("taskModal");
-    const openBtn = document.getElementById("openTaskModal");
-    const closeBtn = document.getElementById("closeTaskModal");
-
-    openBtn?.addEventListener("click", () => {
-      taskModal.style.display = "flex";
-      taskModal.classList.add("show");
-    });
-
-    closeBtn?.addEventListener("click", () => {
-      taskModal.classList.remove("show");
-      setTimeout(() => (taskModal.style.display = "none"), 300);
-    });
-
-    taskModal?.addEventListener("click", (ev) => {
-      if (ev.target === taskModal) closeBtn?.click();
-    });
-  });
-
-  document.addEventListener("turbo:load", function () {
-    const addBtn = document.getElementById("addTask");
-    const container = document.getElementById("tasksContainer");
-    const tpl = document.getElementById("taskTemplate");
-
-    addBtn?.addEventListener("click", () => {
-      if (!tpl) return;
-      const clone = tpl.content.cloneNode(true);
-      container.appendChild(clone);
-    });
-
-    container?.addEventListener("click", (e) => {
-      if (!e.target.classList.contains("remove-task")) return;
-      const block = e.target.closest(".task-fields");
-      const destroyFlag = block.querySelector(".task-destroy-flag");
-      if (destroyFlag) {
-        // marca para destruir se já existir registro (ou não enviar)
-        destroyFlag.value = "1";
-      }
-      block.remove();
-    });
-  });
-  
-  document.addEventListener("turbo:load", () => {
-    const btnAI = document.getElementById("addTaskAI");
-    const hook  = document.getElementById("ai-hooks");
-    const projectId = hook?.dataset.projectId;
-
-    btnAI?.addEventListener("click", async () => {
-      if (!projectId) { alert("Crie/salve o projeto antes."); return; }
-
-      try {
-        const res = await fetch(`/projects/${projectId}/generate_ai_tasks`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
-          }
-          // body: JSON.stringify({ prompt: "... opcional ..." })
-        });
-
-        if (!res.ok) throw new Error((await res.json()).error || res.statusText);
-        const data = await res.json();
-        // atualize a UI (lista de tasks) conforme seu layout:
-        console.log("AI tasks:", data.created);
-        alert(`${data.created.length} tasks geradas e salvas no projeto.`);
-      } catch (e) {
-        console.error(e);
-        alert("Falha ao gerar tarefas por IA.");
-      }
-    });
-  });
-
-
-</script>
