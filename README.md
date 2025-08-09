@@ -74,7 +74,7 @@
 
 ## Using the OpenAI API to Generate Initial Project Tasks
 
-When a new project is created in **TaskPilot**, the system can automatically request initial task suggestions from the [OpenAI Chat Completions API](https://platform.openai.com/docs/api-reference/chat).
+(Planned feature) When a new project is created in **TaskPilot**, the system can automatically request initial task suggestions from the [OpenAI Chat Completions API](https://platform.openai.com/docs/api-reference/chat).
 
 ### Request Example
 ```ruby
@@ -105,7 +105,7 @@ puts response.dig("choices", 0, "message", "content")
 
 ## Tech Stack
 
-- **Ruby on Rails 7**
+- **Ruby on Rails 8**
 - **PostgreSQL**
 - **Devise for authentication**
 - **OpenAI API** (for future AI integration)
