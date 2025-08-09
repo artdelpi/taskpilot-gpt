@@ -201,16 +201,62 @@ body.background-tech {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 16px;
-  padding: 40px;
   width: 100%;
+  max-height: 90vh;
   max-width: 600px;
   box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.4s ease, transform 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;     
+  padding: 8px;    
+}
+
+.modal-body{
+  overflow-y: auto;
+  padding: 40px;
+  max-height: calc(90vh - 120px);       
+}
+
+.modal-footer{
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(0,0,0,.05);
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 .modal-overlay.show .modal-content {
   opacity: 1;
   transform: translateY(0);
+}
+
+.stack-vertical .row { 
+  display: block; 
+  margin: 0; 
+}
+
+.stack-vertical [class^="col-"], 
+.stack-vertical [class*=" col-"] {
+  flex: 0 0 100%; 
+  max-width: 100%;
+}
+
+.stack-vertical > * {
+  width: 100%;
+}
+
+.stack-vertical .card {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.stack-vertical .container {
+  max-width: 100%; 
+  padding: 0;
 }

@@ -1,0 +1,2 @@
+<%= turbo_stream.append "tasks_list", partial: "tasks/item", locals: { task: @task } %>
+<%= turbo_stream.replace "task_form_frame", partial: "tasks/form", locals: { project: @project, task: @project.tasks.new } %>
