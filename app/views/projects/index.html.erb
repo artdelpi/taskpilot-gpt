@@ -182,26 +182,39 @@
     </h4>
 
     <%= form_with(model: @project, url: projects_path, local: true, html: { id: "newProjectForm" }) do |f| %>
-    <!-- Scrollable body -->
-      <div class="modal-body">
+      <!-- Scrollable body: dois controllers juntos -->
+      <div class="modal-body"
+           data-controller="tasks-form ai-suggest">
+
         <div class="mb-3">
           <%= f.label :name, class: "form-label" %>
-          <%= f.text_field :name, class: "form-control", placeholder: "Project name" %>
+          <%= f.text_field :name,
+                class: "form-control",
+                placeholder: "Project name",
+                data: { "ai-suggest-target": "name" } %>
         </div>
 
         <div class="mb-4">
           <%= f.label :description, class: "form-label" %>
-          <%= f.text_area :description, class: "form-control", rows: 4, id: "project_description" %>
+          <%= f.text_area :description,
+                class: "form-control",
+                rows: 4,
+                id: "project_description",
+                data: { "ai-suggest-target": "description" } %>
         </div>
 
-        <div data-controller="tasks-form" data-action="click->tasks-form#remove">
-          <div id="tasksContainer" data-tasks-form-target="container">
+        <div data-action="click->tasks-form#remove">
+          <div id="tasksContainer"
+               data-tasks-form-target="container"
+               data-ai-suggest-target="container">
             <%= f.fields_for :tasks do |tf| %>
               <%= render "task_fields", f: tf %>
             <% end %>
           </div>
 
-          <template id="taskTemplate" data-tasks-form-target="template">
+          <template id="taskTemplate"
+                    data-tasks-form-target="template"
+                    data-ai-suggest-target="template">
             <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
               <%= render "task_fields", f: tf %>
             <% end %>
@@ -222,8 +235,9 @@
           <button type="button"
                   id="addTaskAI"
                   class="btn btn-outline-success btn-sm custom-btn-green"
-                  style="width: 120px">
-            <i class="bi bi-plus"></i> Add Task (AI)
+                  style="width: 120px"
+                  data-action="click->ai-suggest#generate">
+            <i class="bi bi-stars"></i> Add Task (AI)
           </button>
         </div>
 
@@ -346,25 +360,42 @@
           <!-- Card: Tasks -->
           <div class="card shadow-sm">
             <div class="card-body">
-              <h6 class="fw-bold mb-3">Tasks</h6>
-              <% if @project.tasks.any? %>
-                <ul class="list-group list-group-flush">
-                  <% @project.tasks.each do |task| %>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                      <span class="fw-semibold"><%= task.title %></span>
-                      <% if task.status == "completed" %>
-                        <span class="badge bg-success">Completed</span>
-                      <% else %>
-                        <span class="badge bg-warning text-dark">Pending</span>
-                      <% end %>
-                    </li>
-                  <% end %>
-                </ul>
-              <% else %>
-                <p class="text-muted mb-0">No tasks found for this project.</p>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">Tasks</h6>
+
+                <% if @project.present? %>
+                  <button
+                    data-controller="ai-tasks"
+                    data-ai-tasks-project-id-value="<%= @project.id %>"
+                    data-ai-tasks-count-value="5"
+                    data-action="click->ai-tasks#generate"
+                    class="btn btn-outline-success btn-sm custom-btn-green">
+                    <i class="bi bi-stars"></i> Generate AI tasks
+                  </button>
+                <% end %>
+              </div>
+
+              <%= turbo_frame_tag dom_id(@project, :tasks) do %>
+                <% if @project.tasks.any? %>
+                  <ul class="list-group list-group-flush">
+                    <% @project.tasks.each do |task| %>
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold"><%= task.title %></span>
+                        <% if task.status == "completed" %>
+                          <span class="badge bg-success">Completed</span>
+                        <% else %>
+                          <span class="badge bg-warning text-dark">Pending</span>
+                        <% end %>
+                      </li>
+                    <% end %>
+                  </ul>
+                <% else %>
+                  <p class="text-muted mb-0">No tasks found for this project.</p>
+                <% end %>
               <% end %>
             </div>
           </div>
+
 
           <!-- Card: Project Details -->
           <div class="card shadow-sm">

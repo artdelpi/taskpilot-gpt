@@ -49,6 +49,44 @@ class ProjectsController < ApplicationController
     redirect_to projects_path
   end
 
+  def generate_ai_tasks
+    @project = current_user.projects.find(params[:id])
+
+    tasks = Ai::TaskGenerator.new(@project).call(count: params[:count].to_i.clamp(1, 15).presence || 5)
+
+    @created = []
+    ApplicationRecord.transaction do
+      tasks.each do |attrs|
+        @created << @project.tasks.create!(attrs.merge(status: "pending"))
+      end
+    end
+
+    respond_to do |format|
+      format.turbo_stream 
+      format.json { render json: { created: @created.as_json(only: [:id, :title, :due_date]) } }
+    end
+  rescue => e
+    Rails.logger.error("[AI] generate_ai_tasks failed: #{e.message}")
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.replace("flash", partial: "shared/flash", locals: { alert: "AI generation failed" }), status: :unprocessable_entity }
+      format.json { render json: { error: "AI generation failed" }, status: :unprocessable_entity }
+    end
+  end
+
+  def suggest_ai_tasks
+    name = params[:name].to_s
+    description = params[:description].to_s
+    count = params[:count].to_i.clamp(1, 15).presence || 5
+
+    fake_project = OpenStruct.new(name: name, description: description)
+    tasks = Ai::TaskGenerator.new(fake_project).call(count: count)
+
+    render json: { tasks: tasks }
+  rescue => e
+    Rails.logger.error("[AI] suggest_ai_tasks failed: #{e.message}")
+    render json: { error: "AI suggestion failed" }, status: :unprocessable_entity
+  end
+
   private
 
   def set_project
@@ -62,27 +100,4 @@ class ProjectsController < ApplicationController
     )
   end
 
-  def generate_ai_tasks
-    service = OpenAIPlanner.new
-    prompt  = @project.description.to_s
-
-    tasks = service.suggest_tasks(@project.name, prompt) 
-
-    created = []
-    ActiveRecord::Base.transaction do
-      tasks.each do |t|
-        created << @project.tasks.create!(
-          title:       t["title"],
-          description: t["description"],
-          due_date:    t["due_date"],
-          status:      "pending",
-          priority:    t["priority"] || "normal"
-        )
-      end
-    end
-
-    render json: { created: created.map { |x| { id: x.id, title: x.title } } }, status: :created
-  rescue => e
-    render json: { error: e.message }, status: :unprocessable_entity
-  end
 end
