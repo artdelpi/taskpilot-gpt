@@ -14,6 +14,9 @@ Rails.application.routes.draw do
 
   resources :projects do
     post :generate_ai_tasks, on: :member
+    collection do
+      post :suggest_ai_tasks             
+    end
   end
 
   resources :tasks do
