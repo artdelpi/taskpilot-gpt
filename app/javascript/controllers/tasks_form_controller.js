@@ -1,21 +1,18 @@
-export default class {
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
   static targets = ["container", "template"]
 
   connect() {
   }
 
   add() {
-    if (!this.hasTemplateTarget) return
-    const clone = this.templateTarget.content.cloneNode(true)
-    this.containerTarget.appendChild(clone)
+    const fragment = this.templateTarget.content.cloneNode(true)
+    this.containerTarget.appendChild(fragment)
   }
 
   remove(event) {
-    const btn = event.target.closest(".remove-task")
-    if (!btn) return
-    const block = btn.closest(".task-fields")
-    const destroyFlag = block?.querySelector(".task-destroy-flag")
-    if (destroyFlag) destroyFlag.value = "1"
-    block?.remove()
+    const block = event.target.closest(".task-fields")
+    if (block) block.remove()
   }
 }
