@@ -171,7 +171,7 @@
     </h4>
 
     <%= form_with(model: @project, url: projects_path, local: true, html: { id: "newProjectForm" }) do |f| %>
-      <!-- Corpo rolável -->
+    <!-- Scrollable body -->
       <div class="modal-body">
         <div class="mb-3">
           <%= f.label :name, class: "form-label" %>
@@ -197,8 +197,10 @@
       </div>
 
       <div class="modal-footer d-flex justify-content-between">
-        <button type="button" id="addTask" class="btn btn-outline-primary btn-sm">
+        <button type="button" id="addTask" class="btn btn-outline-primary btn-sm" style="width: 120px">
           <i class="bi bi-plus"></i> Add task
+          <button type="button" id="addTaskAI" class="btn btn-outline-success btn-sm custom-btn-green" style="width: 120px">
+          <i class="bi bi-plus"></i> Add Task (AI)
         </button>
 
         <div class="d-flex gap-2">
@@ -206,7 +208,6 @@
           <%= f.submit "Create Project", class: "btn btn-primary" %>
         </div>
       </div>
-      
     <% end %>
   </div>
 </div>
@@ -401,7 +402,6 @@
 
 <script>
   document.addEventListener("turbo:load", function () {
-    // Registrar open/close dos modais
     const modals = [
       { open: "openProfileModal",  modal: "profileModal",        close: "closeProfileModal" },
       { open: "openNewProjectModal", modal: "newProjectModal",   close: "closeNewProjectModal" },
@@ -463,7 +463,7 @@
     });
   });
 
-    document.addEventListener("turbo:load", function () {
+  document.addEventListener("turbo:load", function () {
     const taskModal = document.getElementById("taskModal");
     const openBtn = document.getElementById("openTaskModal");
     const closeBtn = document.getElementById("closeTaskModal");
@@ -505,4 +505,36 @@
       block.remove();
     });
   });
+  
+  document.addEventListener("turbo:load", () => {
+    const btnAI = document.getElementById("addTaskAI");
+    const hook  = document.getElementById("ai-hooks");
+    const projectId = hook?.dataset.projectId;
+
+    btnAI?.addEventListener("click", async () => {
+      if (!projectId) { alert("Crie/salve o projeto antes."); return; }
+
+      try {
+        const res = await fetch(`/projects/${projectId}/generate_ai_tasks`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+          }
+          // body: JSON.stringify({ prompt: "... opcional ..." })
+        });
+
+        if (!res.ok) throw new Error((await res.json()).error || res.statusText);
+        const data = await res.json();
+        // atualize a UI (lista de tasks) conforme seu layout:
+        console.log("AI tasks:", data.created);
+        alert(`${data.created.length} tasks geradas e salvas no projeto.`);
+      } catch (e) {
+        console.error(e);
+        alert("Falha ao gerar tarefas por IA.");
+      }
+    });
+  });
+
+
 </script>
