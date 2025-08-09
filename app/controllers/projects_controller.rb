@@ -61,4 +61,28 @@ class ProjectsController < ApplicationController
       tasks_attributes: [:id, :title, :description, :due_date, :priority, :status, :_destroy]
     )
   end
+
+  def generate_ai_tasks
+    service = OpenAIPlanner.new
+    prompt  = @project.description.to_s
+
+    tasks = service.suggest_tasks(@project.name, prompt) 
+
+    created = []
+    ActiveRecord::Base.transaction do
+      tasks.each do |t|
+        created << @project.tasks.create!(
+          title:       t["title"],
+          description: t["description"],
+          due_date:    t["due_date"],
+          status:      "pending",
+          priority:    t["priority"] || "normal"
+        )
+      end
+    end
+
+    render json: { created: created.map { |x| { id: x.id, title: x.title } } }, status: :created
+  rescue => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  end
 end
