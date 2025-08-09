@@ -1,0 +1,31 @@
+<%= form_with model: [project, task], data: { turbo: true }, id: "task_form" do |f| %>
+  <div class="mb-3">
+    <%= f.label :title, class: "form-label" %>
+    <%= f.text_field :title, class: "form-control", required: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= f.label :description, class: "form-label" %>
+    <%= f.text_area :description, class: "form-control", rows: 3 %>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <%= f.label :due_date, class: "form-label" %>
+      <%= f.date_field :due_date, class: "form-control" %>
+    </div>
+    <div class="col-md-4 mb-3">
+      <%= f.label :status, class: "form-label" %>
+      <%= f.select :status, %w[pending in_progress done], {}, class: "form-select" %>
+    </div>
+    <div class="col-md-4 mb-3">
+      <%= f.label :priority, class: "form-label" %>
+      <%= f.select :priority, %w[low medium high], {}, class: "form-select" %>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-outline-secondary" id="closeTaskModal">Close</button>
+    <%= f.submit "Create Task", class: "btn btn-primary" %>
+  </div>
+<% end %>

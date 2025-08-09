@@ -1,23 +1,30 @@
 class ProjectsController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_project, only: %i[show edit update destroy]
+
   def index
-    @projects = Project.all
+    @projects = current_user.projects
+    @project  = Project.new            
+    @project.tasks.build
   end
 
   def show
-    @project = Project.find(params[:id])
+    @project = current_user.projects
+                         .includes(:tasks)
+                         .find(params[:id])
+    @tasks = @project.tasks.order(created_at: :desc)
   end
 
   def new
     @project = Project.new
+    @project.tasks.build
   end
 
   def create
     @project = Project.new(project_params)
-
     if @project.save
-      ProjectAssignment.create(user: current_user, project: @project)
-
-      redirect_to root_path, notice: "Project created successfully."
+      ProjectAssignment.create!(user: current_user, project: @project)
+      redirect_to authenticated_root_path, notice: "Project created successfully."
     else
       render :new, status: :unprocessable_entity
     end
@@ -44,7 +51,14 @@ class ProjectsController < ApplicationController
 
   private
 
+  def set_project
+    @project = current_user.projects.find(params[:id])
+  end
+
   def project_params
-    params.require(:project).permit(:name, :description)
+    params.require(:project).permit(
+      :name, :description,
+      tasks_attributes: [:id, :title, :description, :due_date, :priority, :status, :_destroy]
+    )
   end
 end

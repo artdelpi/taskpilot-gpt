@@ -1,0 +1,81 @@
+<div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="fw-bold text-primary mb-1">
+        <%= @project.name %>
+      </h3>
+      <p class="text-muted mb-0"><%= @project.description.presence || "No description provided." %></p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title mb-3">Tasks</h5>
+
+          <% if @project.tasks.any? %>
+            <ul class="list-group">
+              <% @project.tasks.order(created_at: :desc).each do |task| %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong><%= task.title %></strong>
+                    <% if task.due_date.present? %>
+                      <small class="text-muted"> — Due <%= task.due_date.strftime("%b %d, %Y") %></small>
+                    <% end %>
+                  </div>
+                  <% if task.status.to_s.downcase == "completed" %>
+                    <span class="badge bg-success">Completed</span>
+                  <% else %>
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  <% end %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <div class="alert alert-light mb-0">No tasks yet.</div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h6 class="card-title">Project Details</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Created</strong>
+              <span><%= @project.created_at.strftime("%b %d, %Y") %></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Updated</strong>
+              <span><%= @project.updated_at.strftime("%b %d, %Y") %></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Total tasks</strong>
+              <span><%= @project.tasks.size %></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">Members</h6>
+          <% if @project.users.any? %>
+            <ul class="list-group list-group-flush">
+              <% @project.users.each do |u| %>
+                <li class="list-group-item">
+                  <i class="bi bi-person-circle me-2"></i><%= u.name.presence || u.email %>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <div class="alert alert-light mb-0">No members yet.</div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

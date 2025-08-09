@@ -1,45 +1,62 @@
 class TasksController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_task, only: %i[show edit update destroy]
+
   def index
-    @tasks = Task.all
+    @tasks = Task.joins(project: :users)
+                 .where(users: { id: current_user.id })
+                 .includes(:project)
+                 .order(created_at: :desc)
   end
 
   def show
-    @task = Task.find(params[:id])
+    @tasks = @project.tasks.order(created_at: :desc) 
   end
-
-  def new
-    @task = Task.new
-  end
-
+  
   def create
-    @task = Task.new(task_params)
+    @task = @project.tasks.build(task_params)
     if @task.save
-      redirect_to @task
+      redirect_to project_path(@project), notice: "Task created."
     else
-      render :new
+      @members = @project.users
+      render :new, status: :unprocessable_entity
     end
   end
 
+  def new
+    @task = @project.tasks.build
+    @members = @project.users
+  end
+
   def edit
-    @task = Task.find(params[:id])
+    @members = @project.users
   end
 
   def update
-    @task = Task.find(params[:id])
     if @task.update(task_params)
-      redirect_to @task
+      redirect_to project_path(@project), notice: "Task updated."
     else
-      render :edit
+      @members = @project.users
+      render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @task = Task.find(params[:id])
     @task.destroy
-    redirect_to tasks_path
+    redirect_to tasks_path, notice: "Task deleted."
   end
 
   private
+
+  def set_project
+    @project = current_user.projects.find(params[:project_id])
+  end
+
+  def set_task
+    @task = Task.joins(project: :users)
+                .where(users: { id: current_user.id })
+                .find(params[:id])
+  end
 
   def task_params
     params.require(:task).permit(:title, :description, :priority, :due_date, :status, :project_id)

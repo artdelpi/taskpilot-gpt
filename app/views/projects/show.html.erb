@@ -1,0 +1,27 @@
+<%# 
+  This view supports both Turbo Frame requests (when opening the project details modal)
+  and full-page navigation (when visiting /projects/:id directly).
+
+    .If it's a Turbo Frame request, we render only the "project_details" frame.
+     The content will be injected into the placeholder inside the modal.
+
+    .If it's a full-page request, we wrap the same frame inside a container
+     and also display a "Back to Projects" button below it.
+
+  This ensures we reuse the same "_details" partial for both contexts.
+%>
+
+<% unless turbo_frame_request? %>
+  <div class="container py-4">
+<% end %>
+
+  <%= turbo_frame_tag "project_details" do %>
+    <%= render "details" %>
+  <% end %>
+
+<% unless turbo_frame_request? %>
+    <div class="mt-3">
+      <%= link_to "Back to Projects", projects_path, class: "btn btn-outline-secondary" %>
+    </div>
+  </div>
+<% end %>

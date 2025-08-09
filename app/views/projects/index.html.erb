@@ -5,7 +5,6 @@
     <h4><i class="bi bi-rocket-takeoff-fill me-2"></i>Taskpilot</h4>
 
     <button id="openProfileModal"><i class="bi bi-person-circle"></i> Profile</button>
-    <button id="openProjectsModal"><i class="bi bi-kanban"></i> Projects</button>
     <button id="openTasksModal"><i class="bi bi-check2-square"></i> Tasks</button>
     <button id="openTagsModal"><i class="bi bi-tag"></i> Tags</button>
     <button id="openSettingsModal"><i class="bi bi-gear"></i> Settings</button>
@@ -23,11 +22,6 @@
     <%= link_to destroy_user_session_path, method: :delete, data: { confirm: "Are you sure you want to log out?" }, class: "text-white d-flex align-items-center" do %>
       <i class="bi bi-box-arrow-right me-2"></i> Logout
     <% end %>
-
-    <small class="d-block mt-2">
-      Logged in as<br>
-      <strong><%= current_user.name || current_user.email %></strong>
-    </small>
   </div>
 </div>
 
@@ -44,10 +38,44 @@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
       <% current_user.projects.each do |project| %>
         <div class="col">
-          <%= link_to project_path(project), class: "text-decoration-none text-dark" do %>
-            <div class="card project-card p-3 h-100">
+          <%= link_to project_path(project),
+                      class: "text-decoration-none text-dark",
+                      data: { turbo_frame: "project_details" } do %>
+            <div class="card project-card p-3 h-100 position-relative">
               <div class="card-body">
+
+              <!-- Stacked buttons -->
+              <div class="position-absolute top-0 end-0 m-2 d-flex flex-column gap-1">
+                
+                <!-- View details button -->
+                <%= link_to project_path(project),
+                      class: "btn btn-light btn-sm text-secondary border-0 shadow-sm rounded-circle",
+                      title: "View project details",
+                      data: { turbo_frame: "project_details" } do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
+
+                <!-- Editing button -->
+                <%= link_to edit_project_path(project),
+                      class: "btn btn-light btn-sm text-primary border-0 shadow-sm rounded-circle",
+                      title: "Edit project details" do %>
+                  <i class="bi bi-pen"></i>
+                <% end %>
+                
+                <!-- Delete button -->
+                <%= button_to project_path(project),
+                      method: :delete,
+                      data: { turbo_confirm: "Delete this project? This action cannot be undone." },
+                      class: "btn btn-light btn-sm text-danger border-0 shadow-sm rounded-circle",
+                      form: { data: { turbo: true } },
+                      title: "Delete project" do %>
+                  <i class="bi bi-trash"></i>
+                <% end %>
+
+              </div>
+
                 <h5 class="card-title"><%= project.name %></h5>
+
                 <p class="card-text text-muted"><%= truncate(project.description, length: 100) %></p>
               </div>
               <div class="card-footer text-muted small text-end bg-transparent border-0">
@@ -58,7 +86,7 @@
         </div>
       <% end %>
     </div>
-  <% else %>
+    <% else %>
     <div class="alert alert-info text-center">
       You haven't joined or created any projects yet.
     </div>
@@ -67,50 +95,118 @@
 
 <div id="settingsModal" class="modal-overlay" style="display: none;">
   <div class="modal-content">
-    <h4 class="mb-4 text-primary text-center fw-bold">
+    
+    <!-- Header -->
+    <h4 class="mb-3 text-primary text-center fw-bold">
       <i class="bi bi-gear me-2"></i>Settings
     </h4>
 
-    <form>
-      <div class="mb-3">
-        <label for="user_name" class="form-label">Your Name</label>
-        <input type="text" class="form-control" id="user_name" placeholder="Change your display name">
+    <%= form_with model: current_user,
+                  url: registration_path(current_user),
+                  method: :patch,
+                  data: { turbo: true },
+                  local: true do |f| %>
+
+      <!-- Scrollable body -->
+      <div class="modal-body">
+        <div class="mb-3">
+          <%= f.label :name, "Your Name", class: "form-label" %>
+          <%= f.text_field :name, class: "form-control", id: "user_name" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :email, "Email", class: "form-label" %>
+          <%= f.email_field :email, class: "form-control", id: "user_email" %>
+        </div>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="togglePasswordFields">
+          <label class="form-check-label" for="togglePasswordFields">Change password</label>
+        </div>
+
+        <div id="passwordFields" style="display:none;">
+          <div class="mb-3">
+            <%= f.label :current_password, "Current password", class: "form-label" %>
+            <%= f.password_field :current_password, class: "form-control", autocomplete: "current-password" %>
+            <small class="text-muted">Required for changing email or password.</small>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :password, "New password", class: "form-label" %>
+            <%= f.password_field :password, class: "form-control", autocomplete: "new-password" %>
+          </div>
+
+          <div class="mb-3">
+            <%= f.label :password_confirmation, "Confirm new password", class: "form-label" %>
+            <%= f.password_field :password_confirmation, class: "form-control", autocomplete: "new-password" %>
+          </div>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label for="user_email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="user_email" placeholder="you@example.com">
+      <!-- Sticky footer -->
+      <div class="modal-footer d-flex justify-content-between">
+        <%= button_to "Delete Account",
+              registration_path(current_user),
+              method: :delete,
+              data: { confirm: "Are you sure you want to delete your account? This action is irreversible." },
+              class: "btn btn-outline-danger",
+              form: { class: "d-inline" } %>
+
+         <!-- Action buttons -->
+        <div class="d-flex gap-2">
+          <button type="button" id="closeSettingsModal" class="btn btn-outline-secondary">Cancel</button>
+          <%= f.submit "Save Changes", class: "btn btn-primary" %>
+        </div>
       </div>
 
-      <div class="d-flex justify-content-between">
-        <button type="button" id="closeSettingsModal" class="btn btn-outline-secondary">Close</button>
-        <%= button_to "Delete Account", registration_path(current_user), method: :delete, data: { confirm: "Are you sure you want to delete your account? This action is irreversible." }, class: "btn btn-outline-danger" %>
-      </div>
-    </form>
+    <% end %>
+
   </div>
 </div>
 
 <div id="newProjectModal" class="modal-overlay" style="display: none;">
   <div class="modal-content">
-    <h4 class="mb-4 text-primary text-center fw-bold">
+    <h4 class="mb-3 text-primary text-center fw-bold">
       <i class="bi bi-kanban me-2"></i>Create a New Project
     </h4>
 
-    <%= form_with(model: Project.new, url: projects_path, local: true) do |f| %>
-      <div class="mb-3">
-        <%= f.label :name, class: "form-label" %>
-        <%= f.text_field :name, class: "form-control", placeholder: "Project name" %>
+    <%= form_with(model: @project, url: projects_path, local: true, html: { id: "newProjectForm" }) do |f| %>
+      <!-- Corpo rolável -->
+      <div class="modal-body">
+        <div class="mb-3">
+          <%= f.label :name, class: "form-label" %>
+          <%= f.text_field :name, class: "form-control", placeholder: "Project name" %>
+        </div>
+
+        <div class="mb-4">
+          <%= f.label :description, class: "form-label" %>
+          <%= f.text_area :description, class: "form-control", rows: 4 %>
+        </div>
+
+        <div id="tasksContainer">
+          <%= f.fields_for :tasks do |tf| %>
+            <%= render "task_fields", f: tf %>
+          <% end %>
+        </div>
+
+        <template id="taskTemplate">
+          <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
+            <%= render "task_fields", f: tf %>
+          <% end %>
+        </template>
       </div>
 
-      <div class="mb-3">
-        <%= f.label :description, class: "form-label" %>
-        <%= f.text_area :description, class: "form-control", placeholder: "Short description", rows: 4 %>
-      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" id="addTask" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-plus"></i> Add task
+        </button>
 
-      <div class="d-flex justify-content-between">
-        <button type="button" id="closeNewProjectModal" class="btn btn-outline-secondary">Cancel</button>
-        <%= f.submit "Create Project", class: "btn btn-primary" %>
+        <div class="d-flex gap-2">
+          <button type="button" id="closeNewProjectModal" class="btn btn-outline-secondary">Cancel</button>
+          <%= f.submit "Create Project", class: "btn btn-primary" %>
+        </div>
       </div>
+      
     <% end %>
   </div>
 </div>
@@ -136,38 +232,54 @@
       </li>
     </ul>
 
-    <div class="d-flex justify-content-between">
-      <%= link_to "Change Password", edit_user_registration_path, class: "btn btn-outline-primary" %>
-      <button type="button" id="closeProfileModal" class="btn btn-secondary">Close</button>
-    </div>
-  </div>
-</div>
-
-<div id="projectsModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content">
-    <h4 class="mb-4 text-primary text-center fw-bold">
-      <i class="bi bi-kanban me-2"></i>Your Projects
-    </h4>
-
-    <p class="text-muted">Manage or explore your projects here.</p>
-
     <div class="d-flex justify-content-end">
-      <button type="button" id="closeProjectsModal" class="btn btn-secondary">Close</button>
+      <button type="button" id="closeProfileModal" class="btn btn-secondary">Close</button>
     </div>
   </div>
 </div>
 
 <div id="tasksModal" class="modal-overlay" style="display: none;">
   <div class="modal-content">
+
+    <!-- Modal Header -->
     <h4 class="mb-4 text-primary text-center fw-bold">
       <i class="bi bi-check2-square me-2"></i>Your Tasks
     </h4>
 
-    <p class="text-muted">Review your current tasks and check your progress.</p>
+    <!-- Scrollable body -->
+    <div class="modal-body">
+      <% tasks = Task.joins(:project)
+                     .where(projects: { id: current_user.projects.select(:id) })
+                     .order(created_at: :desc) %>
 
-    <div class="d-flex justify-content-end">
+      <% if tasks.any? %>
+        <ul class="list-group">
+          <% tasks.each do |task| %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= task.title %></strong>
+                <% if task.due_date.present? %>
+                  <small class="text-muted"> — Due <%= task.due_date.strftime("%b %d, %Y") %></small>
+                <% end %>
+              </div>
+              <% if task.status.to_s.downcase == "completed" %>
+                <span class="badge bg-success">Completed</span>
+              <% else %>
+                <span class="badge bg-warning text-dark">Pending</span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-muted">You have no tasks assigned yet.</p>
+      <% end %>
+    </div>
+
+    <!-- Sticky footer -->
+    <div class="modal-footer d-flex justify-content-end">
       <button type="button" id="closeTasksModal" class="btn btn-secondary">Close</button>
     </div>
+
   </div>
 </div>
 
@@ -185,19 +297,121 @@
   </div>
 </div>
 
+<div id="projectDetailsModal" class="modal-overlay" style="display: none;">
+  <div class="modal-content modal-lg stack-vertical">
+
+    <!-- Modal header -->
+    <div class="modal-header d-flex justify-content-center align-items-center">
+      <h4 class="mb-4 text-primary text-center fw-bold">
+        <i class="bi bi-kanban me-2"></i>Project details
+      </h4>
+    </div>
+
+    <!-- Scrollable body -->
+    <div class="modal-body">
+      <%= turbo_frame_tag "project_details" do %>
+        <% if @project.present? %>
+          <!-- Título e descrição -->
+          <h5 class="fw-bold mb-1"><%= @project.name %></h5>
+          <p class="text-muted mb-4"><%= @project.description.presence || "No description provided." %></p>
+
+          <!-- Card: Tasks -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Tasks</h6>
+              <% if @project.tasks.any? %>
+                <ul class="list-group list-group-flush">
+                  <% @project.tasks.each do |task| %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <span class="fw-semibold"><%= task.title %></span>
+                      <% if task.status == "completed" %>
+                        <span class="badge bg-success">Completed</span>
+                      <% else %>
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-muted mb-0">No tasks found for this project.</p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Card: Project Details -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Project Details</h6>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Created</span>
+                <span><%= @project&.created_at ? l(@project.created_at, format: :long) : "-" %></span>
+              </div>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Updated</span>
+                <span><%= @project&.updated_at ? l(@project.updated_at, format: :long) : "-" %></span>
+              </div>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Total tasks</span>
+                <span><%= @project&.tasks&.count || 0 %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Members -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Members</h6>
+              <% members = if @project.respond_to?(:members)
+                              @project.members
+                            elsif @project.respond_to?(:users)
+                              @project.users
+                            else
+                              []
+                            end %>
+              <% if members.any? %>
+                <ul class="list-group list-group-flush">
+                  <% members.each do |m| %>
+                    <li class="list-group-item d-flex align-items-center gap-2">
+                      <i class="bi bi-person-circle"></i>
+                      <span><%= m.try(:name).presence || m.try(:email).presence || "Member" %></span>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-muted mb-0">No members listed.</p>
+              <% end %>
+            </div>
+          </div>
+
+        <% else %>
+          <div class="text-center text-muted py-5">Select a project to see details.</div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Sticky footer -->
+    <div class="modal-footer d-flex justify-content-end">
+      <button type="button" id="closeProjectDetailsModal" class="btn btn-outline-secondary">
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("turbo:load", function () {
+    // Registrar open/close dos modais
     const modals = [
-      { open: "openProfileModal", modal: "profileModal", close: "closeProfileModal" },
-      { open: "openNewProjectModal", modal: "newProjectModal", close: "closeNewProjectModal" },
-      { open: "openProjectsModal", modal: "projectsModal", close: "closeProjectsModal" },
-      { open: "openTasksModal", modal: "tasksModal", close: "closeTasksModal" },
-      { open: "openTagsModal", modal: "tagsModal", close: "closeTagsModal" },
-      { open: "openSettingsModal", modal: "settingsModal", close: "closeSettingsModal" }
+      { open: "openProfileModal",  modal: "profileModal",        close: "closeProfileModal" },
+      { open: "openNewProjectModal", modal: "newProjectModal",   close: "closeNewProjectModal" },
+      { open: "openTasksModal",    modal: "tasksModal",          close: "closeTasksModal" },
+      { open: "openTagsModal",     modal: "tagsModal",           close: "closeTagsModal" },
+      { open: "openSettingsModal", modal: "settingsModal",       close: "closeSettingsModal" }
     ];
 
     modals.forEach(({ open, modal, close }) => {
-      const openBtn = document.getElementById(open);
+      const openBtn  = document.getElementById(open);
       const closeBtn = document.getElementById(close);
       const modalDiv = document.getElementById(modal);
 
@@ -207,13 +421,88 @@
           modalDiv.classList.add("show");
         });
       }
-
       if (closeBtn && modalDiv) {
         closeBtn.addEventListener("click", () => {
           modalDiv.classList.remove("show");
           setTimeout(() => (modalDiv.style.display = "none"), 300);
         });
       }
+      modalDiv?.addEventListener("click", (ev) => {
+        if (ev.target === modalDiv) closeBtn?.click();
+      });
+    });
+
+    const toggle = document.getElementById("togglePasswordFields");
+    const pwdBox = document.getElementById("passwordFields");
+    if (toggle && pwdBox) {
+      toggle.addEventListener("change", () => {
+        pwdBox.style.display = toggle.checked ? "block" : "none";
+      });
+    }
+  });
+
+  document.addEventListener("turbo:load", function () {
+    const projectModal = document.getElementById("projectDetailsModal");
+    const closeBtn = document.getElementById("closeProjectDetailsModal");
+
+    document.addEventListener("turbo:frame-load", function (e) {
+      if (e.target && e.target.id === "project_details") {
+        projectModal.style.display = "flex";
+        projectModal.classList.add("show");
+      }
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        projectModal.classList.remove("show");
+        setTimeout(() => (projectModal.style.display = "none"), 300);
+      });
+    }
+    projectModal?.addEventListener("click", (ev) => {
+      if (ev.target === projectModal) closeBtn?.click();
+    });
+  });
+
+    document.addEventListener("turbo:load", function () {
+    const taskModal = document.getElementById("taskModal");
+    const openBtn = document.getElementById("openTaskModal");
+    const closeBtn = document.getElementById("closeTaskModal");
+
+    openBtn?.addEventListener("click", () => {
+      taskModal.style.display = "flex";
+      taskModal.classList.add("show");
+    });
+
+    closeBtn?.addEventListener("click", () => {
+      taskModal.classList.remove("show");
+      setTimeout(() => (taskModal.style.display = "none"), 300);
+    });
+
+    taskModal?.addEventListener("click", (ev) => {
+      if (ev.target === taskModal) closeBtn?.click();
+    });
+  });
+
+  document.addEventListener("turbo:load", function () {
+    const addBtn = document.getElementById("addTask");
+    const container = document.getElementById("tasksContainer");
+    const tpl = document.getElementById("taskTemplate");
+
+    addBtn?.addEventListener("click", () => {
+      if (!tpl) return;
+      const clone = tpl.content.cloneNode(true);
+      container.appendChild(clone);
+    });
+
+    container?.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("remove-task")) return;
+      const block = e.target.closest(".task-fields");
+      const destroyFlag = block.querySelector(".task-destroy-flag");
+      if (destroyFlag) {
+        // marca para destruir se já existir registro (ou não enviar)
+        destroyFlag.value = "1";
+      }
+      block.remove();
     });
   });
 </script>

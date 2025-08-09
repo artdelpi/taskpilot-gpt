@@ -1,10 +1,9 @@
 class ApplicationController < ActionController::Base
-  allow_browser versions: :modern
-  layout :layout_by_resource
+  before_action :configure_permitted_parameters, if: :devise_controller?
 
-  private
+  protected
 
-  def layout_by_resource
-    "application"
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:account_update, keys: [:name])
   end
 end

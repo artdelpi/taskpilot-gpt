@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
-  devise_for :users, path: 'account'
+  devise_for :users, path: 'account',
+    controllers: { registrations: 'users/registrations' }
 
   authenticated :user do
     root "projects#index", as: :authenticated_root
