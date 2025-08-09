@@ -13,12 +13,30 @@ class TasksController < ApplicationController
     @tasks = @project.tasks.order(created_at: :desc) 
   end
   
-  def edit; end
+  def create
+    @task = @project.tasks.build(task_params)
+    if @task.save
+      redirect_to project_path(@project), notice: "Task created."
+    else
+      @members = @project.users
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def new
+    @task = @project.tasks.build
+    @members = @project.users
+  end
+
+  def edit
+    @members = @project.users
+  end
 
   def update
     if @task.update(task_params)
-      redirect_to @task, notice: "Task updated."
+      redirect_to project_path(@project), notice: "Task updated."
     else
+      @members = @project.users
       render :edit, status: :unprocessable_entity
     end
   end
@@ -29,6 +47,10 @@ class TasksController < ApplicationController
   end
 
   private
+
+  def set_project
+    @project = current_user.projects.find(params[:project_id])
+  end
 
   def set_task
     @task = Task.joins(project: :users)

@@ -65,7 +65,7 @@
                 <!-- Delete button -->
                 <%= button_to project_path(project),
                       method: :delete,
-                      data: { turbo_confirm: "Excluir este projeto? Essa ação não pode ser desfeita." },
+                      data: { turbo_confirm: "Delete this project? This action cannot be undone." },
                       class: "btn btn-light btn-sm text-danger border-0 shadow-sm rounded-circle",
                       form: { data: { turbo: true } },
                       title: "Delete project" do %>
@@ -239,14 +239,12 @@
 </div>
 
 <div id="tasksModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content modal-lg">
-    
-    <!-- Modal header -->
-    <div class="modal-header justify-content-center">
-      <h4 class="mb-0 text-primary fw-bold">
-        <i class="bi bi-check2-square me-2"></i>Your Tasks
-      </h4>
-    </div>
+  <div class="modal-content">
+
+    <!-- Modal Header -->
+    <h4 class="mb-4 text-primary text-center fw-bold">
+      <i class="bi bi-check2-square me-2"></i>Your Tasks
+    </h4>
 
     <!-- Scrollable body -->
     <div class="modal-body">
@@ -300,8 +298,8 @@
 </div>
 
 <div id="projectDetailsModal" class="modal-overlay" style="display: none;">
-  <div class="modal-content modal-lg">
-    
+  <div class="modal-content modal-lg stack-vertical">
+
     <!-- Modal header -->
     <div class="modal-header d-flex justify-content-center align-items-center">
       <h4 class="mb-4 text-primary text-center fw-bold">
@@ -312,30 +310,81 @@
     <!-- Scrollable body -->
     <div class="modal-body">
       <%= turbo_frame_tag "project_details" do %>
-        <!-- Project basic info -->
-        <h5 class="fw-bold mb-1"><%= @project.name %></h5>
-        <p class="text-muted mb-3"><%= @project.description.presence || "No description provided." %></p>
-        
-        <!-- Tasks list -->
-        <h6 class="fw-bold mb-2">Tasks</h6>
-        <% tasks = Task.joins(:project)
-               .where(projects: { id: @project.id })
-               .order(created_at: :desc) %>
-        <% if tasks.any? %>
-          <ul class="list-group">
-            <% tasks.each do |task| %>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span><%= task.title %></span>
-                <% if task.status.to_s.downcase == "completed" %>
-                  <span class="badge bg-success">Completed</span>
-                <% else %>
-                  <span class="badge bg-warning text-dark">Pending</span>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
+        <% if @project.present? %>
+          <!-- Título e descrição -->
+          <h5 class="fw-bold mb-1"><%= @project.name %></h5>
+          <p class="text-muted mb-4"><%= @project.description.presence || "No description provided." %></p>
+
+          <!-- Card: Tasks -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Tasks</h6>
+              <% if @project.tasks.any? %>
+                <ul class="list-group list-group-flush">
+                  <% @project.tasks.each do |task| %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <span class="fw-semibold"><%= task.title %></span>
+                      <% if task.status == "completed" %>
+                        <span class="badge bg-success">Completed</span>
+                      <% else %>
+                        <span class="badge bg-warning text-dark">Pending</span>
+                      <% end %>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-muted mb-0">No tasks found for this project.</p>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Card: Project Details -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Project Details</h6>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Created</span>
+                <span><%= @project&.created_at ? l(@project.created_at, format: :long) : "-" %></span>
+              </div>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Updated</span>
+                <span><%= @project&.updated_at ? l(@project.updated_at, format: :long) : "-" %></span>
+              </div>
+              <div class="d-flex justify-content-between py-2 border-top">
+                <span class="fw-semibold">Total tasks</span>
+                <span><%= @project&.tasks&.count || 0 %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card: Members -->
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h6 class="fw-bold mb-3">Members</h6>
+              <% members = if @project.respond_to?(:members)
+                              @project.members
+                            elsif @project.respond_to?(:users)
+                              @project.users
+                            else
+                              []
+                            end %>
+              <% if members.any? %>
+                <ul class="list-group list-group-flush">
+                  <% members.each do |m| %>
+                    <li class="list-group-item d-flex align-items-center gap-2">
+                      <i class="bi bi-person-circle"></i>
+                      <span><%= m.try(:name).presence || m.try(:email).presence || "Member" %></span>
+                    </li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-muted mb-0">No members listed.</p>
+              <% end %>
+            </div>
+          </div>
+
         <% else %>
-          <p class="text-muted">No tasks found for this project.</p>
+          <div class="text-center text-muted py-5">Select a project to see details.</div>
         <% end %>
       <% end %>
     </div>
