@@ -260,3 +260,17 @@ body.background-tech {
   max-width: 100%; 
   padding: 0;
 }
+
+.custom-btn-green {
+  border: 1px solid #56A645; 
+  color: #56A645;
+  background-color: white;
+  margin-left: 0px;
+}
+
+.custom-btn-green:hover {
+  background-color: #56A645;
+  color: white;
+  border-color: #56A645;
+}
+

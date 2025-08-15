@@ -1,5 +1,6 @@
 class TasksController < ApplicationController
   before_action :authenticate_user!
+  before_action :set_project, only: %i[new create edit update]
   before_action :set_task, only: %i[show edit update destroy]
 
   def index
@@ -10,6 +11,7 @@ class TasksController < ApplicationController
   end
 
   def show
+    @project = @task.project 
     @tasks = @project.tasks.order(created_at: :desc) 
   end
   

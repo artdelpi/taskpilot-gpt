@@ -12,7 +12,13 @@ Rails.application.routes.draw do
     root to: "devise/sessions#new"
   end
 
-  resources :projects
+  resources :projects do
+    post :generate_ai_tasks, on: :member
+    collection do
+      post :suggest_ai_tasks             
+    end
+  end
+
   resources :tasks do
     member do
       get :split_with_ai

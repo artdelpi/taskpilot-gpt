@@ -1,5 +1,5 @@
 class Task < ApplicationRecord
-  belongs_to :project
+  belongs_to :project, inverse_of: :tasks
   has_many :attachments, dependent: :destroy
   has_many :task_assignments, dependent: :destroy
   has_many :users, through: :task_assignments
