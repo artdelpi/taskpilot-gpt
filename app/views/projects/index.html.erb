@@ -181,11 +181,18 @@
       <i class="bi bi-kanban me-2"></i>Create a New Project
     </h4>
 
-    <%= form_with(model: @project, url: projects_path, local: true, html: { id: "newProjectForm" }) do |f| %>
-      <!-- Scrollable body: dois controllers juntos -->
-      <div class="modal-body"
-           data-controller="tasks-form ai-suggest">
+    <%= form_with(
+          model: @project,
+          url: projects_path,
+          local: true,
+          html: {
+            id: "newProjectForm",
+            data: { controller: "tasks-form ai-suggest" }
+          }
+        ) do |f| %>
 
+      <!-- Scrollable body -->
+      <div class="modal-body">
         <div class="mb-3">
           <%= f.label :name, class: "form-label" %>
           <%= f.text_field :name,
@@ -203,23 +210,21 @@
                 data: { "ai-suggest-target": "description" } %>
         </div>
 
-        <div data-action="click->tasks-form#remove">
-          <div id="tasksContainer"
-               data-tasks-form-target="container"
-               data-ai-suggest-target="container">
-            <%= f.fields_for :tasks do |tf| %>
-              <%= render "task_fields", f: tf %>
-            <% end %>
-          </div>
-
-          <template id="taskTemplate"
-                    data-tasks-form-target="template"
-                    data-ai-suggest-target="template">
-            <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
-              <%= render "task_fields", f: tf %>
-            <% end %>
-          </template>
+        <div id="tasksContainer"
+            data-tasks-form-target="container"
+            data-ai-suggest-target="container">
+          <%= f.fields_for :tasks do |tf| %>
+            <%= render "task_fields", f: tf %>
+          <% end %>
         </div>
+
+        <template id="taskTemplate"
+                  data-tasks-form-target="template"
+                  data-ai-suggest-target="template">
+          <%= f.fields_for :tasks, @project.tasks.build do |tf| %>
+            <%= render "task_fields", f: tf %>
+          <% end %>
+        </template>
       </div>
 
       <div class="modal-footer d-flex justify-content-between">

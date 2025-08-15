@@ -1,3 +1,5 @@
+require "ostruct"
+
 class ProjectsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_project, only: %i[show edit update destroy]
@@ -68,23 +70,32 @@ class ProjectsController < ApplicationController
   rescue => e
     Rails.logger.error("[AI] generate_ai_tasks failed: #{e.message}")
     respond_to do |format|
-      format.turbo_stream { render turbo_stream: turbo_stream.replace("flash", partial: "shared/flash", locals: { alert: "AI generation failed" }), status: :unprocessable_entity }
-      format.json { render json: { error: "AI generation failed" }, status: :unprocessable_entity }
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+                "flash",
+                partial: "shared/flash",
+                locals: { alert: "AI generation failed" }
+              ),
+              status: :unprocessable_content
+      end
+      format.json { render json: { error: "AI generation failed" }, status: :unprocessable_content }
     end
   end
 
   def suggest_ai_tasks
-    name = params[:name].to_s
+    name        = params[:name].to_s
     description = params[:description].to_s
-    count = params[:count].to_i.clamp(1, 15).presence || 5
+    count       = params[:count].to_i.clamp(1, 15).presence || 5
 
-    fake_project = OpenStruct.new(name: name, description: description)
+    fake_project = Project.new(name: name, description: description)
+
     tasks = Ai::TaskGenerator.new(fake_project).call(count: count)
-
-    render json: { tasks: tasks }
+    render json: { tasks: tasks }, status: :ok
   rescue => e
     Rails.logger.error("[AI] suggest_ai_tasks failed: #{e.message}")
-    render json: { error: "AI suggestion failed" }, status: :unprocessable_entity
+    tasks = Ai::TaskGenerator.local_suggestions(fake_project, count: count)
+    response.set_header("X-AI-Fallback", "true")
+    render json: { tasks: tasks }, status: :ok
   end
 
   private
